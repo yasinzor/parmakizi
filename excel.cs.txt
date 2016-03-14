@@ -1,0 +1,64 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using System.Data.OleDb;
+
+namespace pdks
+{
+    public partial class excel : Form
+    {
+        public excel()
+        {
+            InitializeComponent();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            OleDbConnection baglanti = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\kimlik.xlsx; Extended Properties='Excel 12.0 xml;HDR=YES;'");
+            baglanti.Open();  //www.ahmetcansever.com
+            OleDbDataAdapter da = new OleDbDataAdapter("SELECT * FROM [Tüm Veriler$]", baglanti);
+            DataTable dt = new DataTable();
+            da.Fill(dt);
+            dataGridView1.DataSource = dt.DefaultView;
+            baglanti.Close();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            int rowSayi = dataGridView1.Rows.Count;
+            int cellSayi = dataGridView1.ColumnCount;
+            String SahisNo = dataGridView1.Rows[0].Cells[1].Value.ToString();
+            String adi = dataGridView1.Rows[0].Cells[2].Value.ToString();
+            String soyadi = dataGridView1.Rows[0].Cells[3].Value.ToString();
+            String babaAdi = dataGridView1.Rows[0].Cells[4].Value.ToString();
+            String anneAdi = dataGridView1.Rows[0].Cells[5].Value.ToString();
+            String DTarihi = dataGridView1.Rows[0].Cells[6].Value.ToString();
+            String DYeri = dataGridView1.Rows[0].Cells[7].Value.ToString();
+            String Cinsiyet = dataGridView1.Rows[0].Cells[8].Value.ToString();
+            String MedeniDurum = dataGridView1.Rows[0].Cells[9].Value.ToString();
+            String Uyrugu = dataGridView1.Rows[0].Cells[10].Value.ToString();
+            String Mezhep = dataGridView1.Rows[0].Cells[11].Value.ToString();
+            String EtnikKoken = dataGridView1.Rows[0].Cells[12].Value.ToString();
+            String EgitimDurum = dataGridView1.Rows[0].Cells[13].Value.ToString();
+            String Meslek = dataGridView1.Rows[0].Cells[14].Value.ToString();
+            String Dini = dataGridView1.Rows[0].Cells[15].Value.ToString();
+            String SaglikDurumu = dataGridView1.Rows[0].Cells[16].Value.ToString();
+            String KanGrubu = dataGridView1.Rows[0].Cells[17].Value.ToString();
+            String Beden = dataGridView1.Rows[0].Cells[18].Value.ToString();
+            String AyakkabiNo = dataGridView1.Rows[0].Cells[19].Value.ToString();
+            String KayitIli = dataGridView1.Rows[0].Cells[20].Value.ToString();
+            String KayitYeri = dataGridView1.Rows[0].Cells[21].Value.ToString();
+            String KayitTarihi = dataGridView1.Rows[0].Cells[22].Value.ToString();
+            String KayitTipi = dataGridView1.Rows[0].Cells[23].Value.ToString();
+            String Durum = dataGridView1.Rows[0].Cells[24].Value.ToString();
+
+
+
+            MessageBox.Show(SahisNo + "\n" + adi + "\n" + soyadi + "\n" + babaAdi + "\n" + anneAdi + "\n" + DTarihi + "\n" + DYeri + "\n" + Cinsiyet + "\n" + MedeniDurum + "\n" + Uyrugu + "\n" + Mezhep + "\n" + EtnikKoken + "\n" + EgitimDurum + "\n" + Meslek + "\n" + Dini + "\n" + SaglikDurumu + "\n" + KanGrubu + "\n" + Beden + "\n" + AyakkabiNo + "\n" + KayitIli + "\n" + KayitYeri + "\n" + KayitTarihi + "\n" + KayitTipi + "\n" + Durum);
+        }
+    }
+}

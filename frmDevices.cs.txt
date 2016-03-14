@@ -1,0 +1,60 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+
+namespace pdks
+{
+    public partial class frmDevices : Form
+    {
+        public frmDevices()
+        {
+            InitializeComponent();
+            dataGridView1.DataSource = Program.data.Devices();
+          
+        }
+
+        public string IP;
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if (Program.data.InsertDevices(txtDvcName.Text, txtDvcIP.Text, txtDvcPort.Text) == 1)
+                MessageBox.Show("Kayıt Başarılı");
+        }
+
+        private void dataGridView1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            IP = (string)dataGridView1.CurrentRow.Cells["DeviceIP"].Value;
+            this.DialogResult = DialogResult.OK;
+        }
+
+        private void frmDevices_Shown(object sender, EventArgs e)
+        {
+            if (this.Modal)
+            {
+                this.Width = panel1.Width;
+                panel2.Visible = false;
+               
+            }
+        }
+
+        private void frmDevices_Load(object sender, EventArgs e)
+        {
+            if (this.Owner != null)
+            {
+            
+               this.Left = this.Owner.Left +(this.Width/2);
+               this.Top =  this.Owner.Top+ (this.Height/2);
+               
+            }
+        }
+
+        private void txtDvcID_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+    }
+}

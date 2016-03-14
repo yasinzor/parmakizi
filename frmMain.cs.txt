@@ -1,0 +1,504 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+
+namespace pdks
+{
+    public partial class frmMain : Form
+    {
+       
+        
+        public frmMain()
+        {
+           
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+          
+        }
+
+        private void personelToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            frmUsers users = new frmUsers();
+            users.MdiParent = this;
+            users.Show();
+        }
+
+        private void sunucuAyarlarıToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            frmSetServer server = new frmSetServer();
+            server.MdiParent = this;
+            server.Show();
+        }
+
+        private void cihazTanımlamaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            frmDevices devices = new frmDevices();
+            devices.MdiParent    = this;
+            devices.Show();
+        }
+
+        private void cihazAyarlarıToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            frmSetDevice device = new frmSetDevice();
+            device.MdiParent = this;
+            device.Show();
+        }
+
+        private void cihazdanKullanıcılarıGetirToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            frmDeviceUsers duser = new frmDeviceUsers();
+            duser.MdiParent = this;
+            duser.Show();
+        }
+
+        private void tesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            frmAttLog attlog = new frmAttLog();
+            attlog.MdiParent = this;
+            attlog.Show();
+
+        }
+
+        private void dToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Devices.MC.Disconnect();
+            Devices.Connect();
+            if (Devices.Connected)
+            {
+                MessageBox.Show("Terminal Bağlantısı Değiştirildi");
+            }
+            else 
+            {
+                MessageBox.Show("Terminal Değiştirmede Hata Oluştu.");
+            }
+        }
+
+        private void günlükDevamRaporuToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+           
+        }
+       
+        private void tasarımToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FastReport.Report rpt = new FastReport.Report();
+            rpt.Design(this);
+        }
+
+        private void haftalıkDevamRaporuToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FastReport.Report rpt = new FastReport.Report();
+            rpt.Load(@".\Rapor\1.frx");
+
+            //SELECT distinct CONVERT(datetime, cast(Year as varchar)+'/'+cast(Month as varchar)+'/'+CAST(Day as varchar),101) as Tarih FROM ATTLOG"
+            //tb.SelectCommand = "SELECT distinct CONVERT(datetime, cast(Year as varchar)+'/'+cast(Month as varchar)+'/'+CAST(Day as varchar),101) as Tarih FROM ATTLOG where Year = 2016 and Mount = 1 and Day = 11";
+            //tb1.SelectCommand = "SELECT  USERS.UserId, USERS.UserName,  CONVERT(time, cast([Hour] as varchar)+':'+cast(Minute as varchar)+':'+CAST(Second as varchar),108) as Tarih  FROM ATTLOG left join USERS on ATTLOG.UserId = USERS.UserId";
+            DataSet ds = new DataSet();
+            ds.Tables.Add(Program.data.GetDateList(DateTime.Now.AddDays(-7), DateTime.Now));
+            ds.Tables.Add(Program.data.GetUserCheck(DateTime.Now.AddDays(-7), DateTime.Now));
+
+            //MessageBox.Show(DateTime.Now.AddDays(-7).ToString());
+
+            DataRelation relation = new DataRelation("Tarih", ds.Tables[0].Columns[0], ds.Tables[1].Columns[2]);
+           
+            ds.Relations.Add(relation);
+          
+            // rpt.SetParameterValue("Parameter", dateTimePicker1.Value);
+
+            rpt.RegisterData(ds);
+
+            //rpt.Design();
+            rpt.Show();
+
+            //frmReport rpt = new frmReport();
+            //rpt.MdiParent = this;
+            //rpt.Show();
+        }
+
+        private void aylıkDevamRaporuToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void tarihSecerekHazırlaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            frmReport rpt = new frmReport();
+            rpt.MdiParent = this;
+            rpt.Show();
+        }
+
+        private void raporla(DateTime ilk ,DateTime son)
+        {
+            
+            FastReport.Report rpt = new FastReport.Report();
+            rpt.Load(@".\Rapor\1.frx");
+            //tb.SelectCommand = "SELECT distinct CONVERT(datetime, cast(Year as varchar)+'/'+cast(Month as varchar)+'/'+CAST(Day as varchar),101) as Tarih FROM ATTLOG where Year = 2016 and Mount = 1 and Day = 11";
+            DataSet ds = new DataSet();
+            ds.Tables.Add(Program.data.GetDateList(ilk, son));
+            ds.Tables.Add(Program.data.GetUserCheck(ilk, son));
+
+            //MessageBox.Show(DateTime.Now.AddDays(-7).ToString());
+
+            DataRelation relation = new DataRelation("Tarih", ds.Tables[0].Columns[0], ds.Tables[1].Columns[2]);
+
+            ds.Relations.Add(relation);
+
+            // rpt.SetParameterValue("Parameter", dateTimePicker1.Value);
+            
+            rpt.RegisterData(ds);
+
+            //rpt.Design();
+            rpt.Show();
+        }
+
+        private void şubatToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+          
+        }
+
+        private void martToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void nisanToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void mayısToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+          
+        }
+
+        private void nisanToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void temmuzToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void ağustosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void eylülToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void ekimToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void kasımToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void aralıkToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void mahalleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            frmMahalle mahalle = new frmMahalle();
+            mahalle.MdiParent = this;
+            mahalle.Show();
+        }
+
+        private void veriEklemeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            excel excel = new excel();
+            excel.MdiParent = this;
+            excel.Show();
+        }
+
+        private void tasarımToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            OpenFileDialog dosya = new OpenFileDialog();
+            dosya.Filter = "Rapor |*.frx|Tüm Dosyalar |*.*";
+            dosya.Title = "Tasarım Raporu Seç";
+            
+            dosya.ShowDialog();
+            string DosyaYolu = dosya.FileName;
+            if (DosyaYolu == "" || DosyaYolu == null)
+            {
+                MessageBox.Show("Dosya Seçilmedi");
+            }
+            else
+            {
+                FastReport.Report rpt = new FastReport.Report();
+                rpt.Load(@DosyaYolu);
+                DataSet ds = new DataSet();
+                DateTime ilk = new DateTime(DateTime.Now.Year, 1, 1);
+                DateTime son = new DateTime(DateTime.Now.Year, 12, DateTime.DaysInMonth(DateTime.Now.Year, 12));
+                ds.Tables.Add(Program.data.GetUserCheckGelmeyenMahalle(ilk, son, son.Day, ilk.Day, "0", "99", "Sahabiye"));
+                rpt.RegisterData(ds);
+                rpt.Design();
+            }
+        }
+
+        private void gelmeyenlerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FastReport.Report report = new FastReport.Report(); // Yeni bir rapor dosyası oluşturuyoruz.
+
+            report.Load(@".\Rapor\gelmeyen.frx");
+            DataSet ds = new DataSet();
+            ds.Tables.Add(Program.data.GetUserCheckGelmeyen(DateTime.Now, DateTime.Now, DateTime.Now.Day, DateTime.Now.Day));
+            report.RegisterData(ds);
+            report.Show();
+        }
+
+        private void gelenlerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FastReport.Report rpt = new FastReport.Report();
+            rpt.Load(@".\Rapor\1.frx");
+            DataSet ds = new DataSet();
+            ds.Tables.Add(Program.data.GetDateList(DateTime.Now, DateTime.Now));
+            ds.Tables.Add(Program.data.GetUserCheck(DateTime.Now, DateTime.Now));
+            DataRelation relation = new DataRelation("Tarih", ds.Tables[0].Columns[0], ds.Tables[1].Columns[2]);
+            ds.Relations.Add(relation);
+            rpt.RegisterData(ds);
+            rpt.Show();
+        }
+
+        private void gelenRaporToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DateTime ilk = DateTime.Now.AddDays(-7);
+            DateTime son = DateTime.Now;
+
+            FastReport.Report report = new FastReport.Report(); // 
+            report.Load(@".\Rapor\2.frx");
+            DataSet ds = new DataSet();
+            if (ilk.Month.Equals(son.Month))
+            {
+                ds.Tables.Add(Program.data.GetUserCheckGelen(ilk, son, son.Day, ilk.Day));
+            }
+            else
+            {
+                ds.Tables.Add(Program.data.GetUserCheckGelen(ilk, son, 31, 1));
+            }
+            report.RegisterData(ds);
+            report.Show();
+        }
+
+        private void gelmeyenRaporToolStripMenuItem_Click(object sender, EventArgs e)
+        {   //Haftalık gelmeyen raporlama
+            
+            FastReport.Report report = new FastReport.Report(); // Yeni bir rapor dosyası oluşturuyoruz.
+
+            report.Load(@".\Rapor\gelmeyen.frx");
+            DataSet ds = new DataSet();
+            if (DateTime.Now.Month.Equals(DateTime.Now.AddDays(-7).Month))
+            {
+                ds.Tables.Add(Program.data.GetUserCheckGelmeyen(DateTime.Now.AddDays(-7), DateTime.Now, DateTime.Now.Day, DateTime.Now.AddDays(-7).Day));
+            }
+            else
+            {
+                ds.Tables.Add(Program.data.GetUserCheckGelmeyen(DateTime.Now.AddDays(-7), DateTime.Now, 31, 1));
+            }
+            report.RegisterData(ds);
+
+            report.Show();
+        }
+
+        private void gelenRaporToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            //Ocak Gelen Raporu
+            DateTime ilk = new DateTime(DateTime.Now.Year, 1, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 1, DateTime.DaysInMonth(DateTime.Now.Year, 1));
+            raporla(ilk, son);
+        }
+        private void GelmeyenRaporla(DateTime ilk, DateTime son)
+        {
+            FastReport.Report report = new FastReport.Report(); // 
+            report.Load(@".\Rapor\gelmeyen.frx");
+            DataSet ds = new DataSet();
+            ds.Tables.Add(Program.data.GetUserCheckGelmeyen(ilk, son, 31, 1));
+            report.RegisterData(ds);
+            report.Show();
+        }
+        private void gelmeyenRaporToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            //Ocak Gelmeyeen Raporu
+            DateTime ilk = new DateTime(DateTime.Now.Year, 1, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 1, DateTime.DaysInMonth(DateTime.Now.Year, 1));
+            GelmeyenRaporla(ilk,son);
+        }
+
+        private void gelenRaporToolStripMenuItem2_Click(object sender, EventArgs e)
+        {   //subat gelen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 2, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 2, DateTime.DaysInMonth(DateTime.Now.Year, 2));
+            raporla(ilk, son);
+        }
+
+        private void gelmeyenRaporToolStripMenuItem2_Click(object sender, EventArgs e)
+        {//subat gelmeyen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 2, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 2, DateTime.DaysInMonth(DateTime.Now.Year, 2));
+            GelmeyenRaporla(ilk, son);
+        }
+
+        private void gelenRaporToolStripMenuItem3_Click(object sender, EventArgs e)
+        {   //Mart gelen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 3, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 3, DateTime.DaysInMonth(DateTime.Now.Year, 3));
+            raporla(ilk, son);
+        }
+
+        private void gelmeyenRaporToolStripMenuItem3_Click(object sender, EventArgs e)
+        {// Mart Gelmeyeeen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 3, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 3, DateTime.DaysInMonth(DateTime.Now.Year, 3));
+            GelmeyenRaporla(ilk, son);
+        }
+
+        private void gelenRaporToolStripMenuItem4_Click(object sender, EventArgs e)
+        {//nisan Rapor
+            DateTime ilk = new DateTime(DateTime.Now.Year, 4, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 4, DateTime.DaysInMonth(DateTime.Now.Year, 4));
+            raporla(ilk, son);
+        }
+
+        private void gelmeyenRaporToolStripMenuItem4_Click(object sender, EventArgs e)
+        { //nisan gelmeyen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 4, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 4, DateTime.DaysInMonth(DateTime.Now.Year, 4));
+            GelmeyenRaporla(ilk, son);
+        }
+
+        private void gelenRaporToolStripMenuItem5_Click(object sender, EventArgs e)
+        {
+            //mayıs Rapor
+            DateTime ilk = new DateTime(DateTime.Now.Year, 5, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 5, DateTime.DaysInMonth(DateTime.Now.Year, 5));
+            raporla(ilk, son);
+        }
+
+        private void gelmeyenRaporToolStripMenuItem5_Click(object sender, EventArgs e)
+        {   // mayıs gelmeyen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 5, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 5, DateTime.DaysInMonth(DateTime.Now.Year, 5));
+            GelmeyenRaporla(ilk, son);
+        }
+
+        private void gelenRaporToolStripMenuItem6_Click(object sender, EventArgs e)
+        {   //haziran gelen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 6, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 6, DateTime.DaysInMonth(DateTime.Now.Year, 6));
+            raporla(ilk, son);
+        }
+
+        private void gelmeyenRaporToolStripMenuItem6_Click(object sender, EventArgs e)
+        {   //haziran Gelmeyen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 6, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 6, DateTime.DaysInMonth(DateTime.Now.Year, 6));
+            GelmeyenRaporla(ilk, son);
+        }
+
+        private void gelenRaporToolStripMenuItem7_Click(object sender, EventArgs e)
+        {   //temmuz raporu
+            DateTime ilk = new DateTime(DateTime.Now.Year, 7, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 7, DateTime.DaysInMonth(DateTime.Now.Year, 7));
+            raporla(ilk, son);
+        }
+
+        private void gelmeyenRaporToolStripMenuItem7_Click(object sender, EventArgs e)
+        {   // temmuz Gelmeyen 
+            DateTime ilk = new DateTime(DateTime.Now.Year, 7, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 7, DateTime.DaysInMonth(DateTime.Now.Year, 7));
+            GelmeyenRaporla(ilk, son);
+        }
+
+        private void gelenRaporToolStripMenuItem8_Click(object sender, EventArgs e)
+        {   //agustos rapor
+            DateTime ilk = new DateTime(DateTime.Now.Year, 8, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 8, DateTime.DaysInMonth(DateTime.Now.Year, 8));
+            raporla(ilk, son);
+        }
+
+        private void gelmeyenRaporToolStripMenuItem8_Click(object sender, EventArgs e)
+        {   //agustos gelmeyen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 8, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 8, DateTime.DaysInMonth(DateTime.Now.Year, 8));
+            GelmeyenRaporla(ilk, son);
+        }
+
+        private void gelenRaporToolStripMenuItem9_Click(object sender, EventArgs e)
+        {//eylul gelmeyen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 9, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 9, DateTime.DaysInMonth(DateTime.Now.Year, 9));
+            raporla(ilk, son);
+        }
+
+        private void gelmeyenRaporToolStripMenuItem9_Click(object sender, EventArgs e)
+        {//eylul gelmeyen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 9, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 9, DateTime.DaysInMonth(DateTime.Now.Year, 9));
+            GelmeyenRaporla(ilk, son);
+        }
+
+        private void gelenRaporToolStripMenuItem10_Click(object sender, EventArgs e)
+        {   //ekimm raporu
+            DateTime ilk = new DateTime(DateTime.Now.Year, 10, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 10, DateTime.DaysInMonth(DateTime.Now.Year, 10));
+            raporla(ilk, son);
+        }
+
+        private void gelmeyenRaporToolStripMenuItem10_Click(object sender, EventArgs e)
+        {   // ekim gelmeyen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 10, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 10, DateTime.DaysInMonth(DateTime.Now.Year, 10));
+            GelmeyenRaporla(ilk, son);
+        }
+
+        private void gelenRaporToolStripMenuItem11_Click(object sender, EventArgs e)
+        {   // kasım rapor
+            DateTime ilk = new DateTime(DateTime.Now.Year, 11, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 11, DateTime.DaysInMonth(DateTime.Now.Year, 11));
+            raporla(ilk, son);
+        }
+
+        private void gelmeyenRaporToolStripMenuItem11_Click(object sender, EventArgs e)
+        {   // kasım gelmeyen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 11, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 11, DateTime.DaysInMonth(DateTime.Now.Year, 11));
+            GelmeyenRaporla(ilk, son);
+        }
+
+        private void gelenRaporToolStripMenuItem12_Click(object sender, EventArgs e)
+        {   //aralık rapor
+            DateTime ilk = new DateTime(DateTime.Now.Year, 12, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 12, DateTime.DaysInMonth(DateTime.Now.Year, 12));
+            raporla(ilk, son);
+        }
+
+        private void gelmeyenRaporToolStripMenuItem12_Click(object sender, EventArgs e)
+        {   //aralık gelmeyen
+            DateTime ilk = new DateTime(DateTime.Now.Year, 12, 1);
+            DateTime son = new DateTime(DateTime.Now.Year, 12, DateTime.DaysInMonth(DateTime.Now.Year, 12));
+            GelmeyenRaporla(ilk, son);
+        }
+
+        private void tarihSeçToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            frmReport rpt = new frmReport();
+            rpt.MdiParent = this;
+            rpt.Show();
+        }
+    }
+}

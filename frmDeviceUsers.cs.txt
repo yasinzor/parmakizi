@@ -1,0 +1,85 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+
+namespace pdks
+{
+    public partial class frmDeviceUsers : Form
+    {
+        public frmDeviceUsers()
+        {
+            InitializeComponent();
+        }
+
+        private void lvUser_SelectedIndexChanged(object sender, EventArgs e)
+        {
+          
+            
+        }
+
+        
+
+        private void frmDeviceUsers_Load(object sender, EventArgs e)
+        {
+            WaitDialogForm form = new WaitDialogForm("Cihazdan Kullanıcılar Okunurken \nLütfen Bekleyiniz..",this.ParentForm);
+            DataTable _table = Devices.Users();
+            for (int i = 0; i < _table.Rows.Count; i++)
+            {
+                ListViewItem list = new ListViewItem();
+                list.Text = _table.Rows[i]["UserID"].ToString();
+                list.SubItems.Add(_table.Rows[i]["UserName"].ToString());
+                list.SubItems.Add(_table.Rows[i]["Finger00"].ToString());
+                list.SubItems.Add(_table.Rows[i]["Finger01"].ToString());
+                list.SubItems.Add(_table.Rows[i]["Finger02"].ToString());
+                list.SubItems.Add(_table.Rows[i]["Finger03"].ToString());
+                list.SubItems.Add(_table.Rows[i]["Finger04"].ToString());
+                list.SubItems.Add(_table.Rows[i]["Finger05"].ToString());
+                list.SubItems.Add(_table.Rows[i]["Finger06"].ToString());
+                list.SubItems.Add(_table.Rows[i]["Finger07"].ToString());
+                list.SubItems.Add(_table.Rows[i]["Finger08"].ToString());
+                list.SubItems.Add(_table.Rows[i]["Finger09"].ToString());
+                lvUser.Items.Add(list);
+                
+                //MessageBox.Show(_table.Rows[i][0].ToString());
+            }
+
+            form.Dispose();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            //kaydet olabilir
+            //string v = lvUser.SelectedItems;
+            for (int i = 0; lvUser.SelectedItems.Count - 1 >= i; i++)
+            {
+                string item = lvUser.SelectedItems[i].SubItems[0].Text;
+                frmUser user = new frmUser(Int32.Parse(item));
+                user.ShowDialog();
+            }
+            //MessageBox.Show(item);
+            
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (!lvUser.SelectedItems.Count.Equals(0))
+            {
+                string item = lvUser.SelectedItems[0].SubItems[0].Text;
+                int userid = Int32.Parse(item);
+                for (int i = 0; i < 10; i++ )
+                {
+                    Devices.deleteUser(Devices.MachineNumber, userid, i);
+                }
+            }
+            else 
+            {
+                MessageBox.Show("Listeden kayıt seçmediniz.");
+            }
+        }
+        
+    }
+}

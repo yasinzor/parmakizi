@@ -1,0 +1,147 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Data;
+
+namespace pdks
+{
+    public static class Devices
+    {
+        public static bool Connected = false;
+        public static int MachineNumber = 1;
+        public  static zkemkeeper.CZKEMClass MC = new zkemkeeper.CZKEMClass();
+
+        public static void Connect()
+        {
+            frmDevices devices = new frmDevices();
+
+            if (devices.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+               Connected =  MC.Connect_Net(devices.IP, 4370);
+               devices.Close();
+            }
+            
+        }
+
+        public static void SendTerminal(string UserID, string UserName, string UserPass,int Privilere, bool Enabled, int FingerIndex)
+        {
+            if (!Devices.Connected)
+                Devices.Connect();
+            if (Devices.Connected)
+            {
+                //kullanıcı bilgileri kaydet
+                if (Devices.MC.SSR_SetUserInfo(Devices.MachineNumber, UserID, UserName, UserPass, Privilere, Enabled))
+                {
+                    //Parmak İzini Kaydet
+                    string _tmpdata = Program.data.Finger(Convert.ToInt32(UserID), FingerIndex);
+                    if (Devices.MC.SetUserTmpExStr(Devices.MachineNumber, UserID, FingerIndex, 1, _tmpdata))
+                    {
+                        System.Windows.Forms.MessageBox.Show("Cihaza Kayıt İşlemi Tamamlandı");
+                    }
+                    else
+                    {
+                        int errorCode = 0;
+                        Devices.MC.GetLastError(ref errorCode);
+                        System.Windows.Forms.MessageBox.Show("Hatalı İşlem \nHata Kod = " + errorCode.ToString());
+                    }
+                }
+                else
+                {
+                    int errorCode = 0;
+                    Devices.MC.GetLastError(ref errorCode);
+                    System.Windows.Forms.MessageBox.Show("Hatalı İşlem \nHata Kod = " + errorCode.ToString());
+                }
+
+            }
+            else
+            {
+                System.Windows.Forms.MessageBox.Show("Parmak İzi Cihazına Bağlanılamadı");
+            }
+        }
+
+        public static DataTable Users()
+        {
+            DataTable _table = new DataTable();
+            _table.Columns.Add("UserID");
+            _table.Columns.Add("UserName");
+            _table.Columns.Add("Password");
+            _table.Columns.Add("Privilege");
+            _table.Columns.Add("Enabled");
+            _table.Columns.Add("Finger00");
+            _table.Columns.Add("Finger01");
+            _table.Columns.Add("Finger02");
+            _table.Columns.Add("Finger03");
+            _table.Columns.Add("Finger04");
+            _table.Columns.Add("Finger05");
+            _table.Columns.Add("Finger06");
+            _table.Columns.Add("Finger07");
+            _table.Columns.Add("Finger08");
+            _table.Columns.Add("Finger09");
+
+            if (!Connected)
+            {
+                Connect();
+            }
+
+            string sdwEnrollNumber = "";
+            string sName = "";
+            string sPassword = "";
+            int iPrivilege = 0;
+            bool bEnabled = false;
+
+            int idwFingerIndex;
+            string sTmpData = "";
+            int iTmpLength = 0;
+            int iFlag = 0;
+
+            MC.EnableDevice(MachineNumber, false);
+            MC.ReadAllUserID(MachineNumber);
+            MC.ReadAllTemplate(MachineNumber);
+            while (MC.SSR_GetAllUserInfo(MachineNumber, out sdwEnrollNumber, out sName, out sPassword, out iPrivilege, out bEnabled))
+            {
+                DataRow dt = _table.NewRow();
+                dt["UserID"] = sdwEnrollNumber;
+                dt["UserName"] = sName;
+                for (idwFingerIndex = 0; idwFingerIndex < 10; idwFingerIndex++)
+                {
+                    if (MC.GetUserTmpExStr(MachineNumber, sdwEnrollNumber, idwFingerIndex, out iFlag, out sTmpData, out iTmpLength))
+                    {
+                        dt["Finger0" + idwFingerIndex] = sTmpData;
+                    }
+                }
+                _table.Rows.Add(dt);
+            }
+            MC.EnableDevice(MachineNumber, true);
+            return _table;
+        }
+
+        public static String deleteUser(int MachineNumber, int cbUserIDTmp, int cbFingerIndex)
+        {
+            {
+                if (!Connected)
+                {
+                    Connect();
+                }
+
+                int idwErrorCode = 0;
+
+                string sUserID =  cbUserIDTmp.ToString();
+                int iFingerIndex = cbFingerIndex;
+                int iBackupNumber = cbFingerIndex;
+                if (MC.SSR_DelUserTmp(MachineNumber, sUserID, iFingerIndex))
+                {   
+                    MC.RefreshData(MachineNumber);//the data in the device should be refreshed  
+                }
+                else
+                {
+                    MC.GetLastError(ref idwErrorCode);                
+                } 
+                if (MC.SSR_DeleteEnrollData(MachineNumber, sUserID, iBackupNumber))
+                {
+                    MC.RefreshData(MachineNumber);//the data in the device should be refreshed   
+                }
+            }
+            return "Kayıt silindi.";
+        }
+    }
+}

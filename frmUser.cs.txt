@@ -1,0 +1,403 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using System.IO;
+using System.Text.RegularExpressions;
+
+
+namespace pdks
+{
+    public partial class frmUser : Form
+    {
+        private bool YeniKayitmi = true;
+        private bool kameraIsConnect = false;
+        private bool parmakIzi = false;
+        public frmUser()
+        {
+            InitializeComponent();
+            DataTable dt = new DataTable("Mahalle");
+            dt=Program.data.GetMahalle();
+            for (int i = 0; i <= dt.Rows.Count - 1; i++)
+            {
+                Object cellValue = dt.Rows[i][1];
+                string adi = cellValue.ToString();
+                comboBox1.Items.Add(adi);
+            }
+        }
+
+        public frmUser(int UserID)
+            : this()
+        {
+            YeniKayitmi = false;
+            kameraIsConnect = false;
+            DataRow _tmp = Program.data.User(UserID);
+            txtUserID.Text = _tmp["UserId"].ToString();
+            txtUserName.Text = _tmp["UserName"].ToString();
+            textBox2.Text = _tmp["KimlikNo"].ToString();
+            textBox3.Text = _tmp["Pasaport"].ToString();
+            textBox5.Text = _tmp["Soyadi"].ToString();
+     
+            textBox1.Text = _tmp["BabaAdi"].ToString();
+            textBox7.Text = _tmp["AnneAdi"].ToString();
+            dateTimePicker2.Text = _tmp["Dogum"].ToString();
+            textBox6.Text = _tmp["DYeri"].ToString();
+            comboBox3.Text = _tmp["Cinsiyet1"].ToString();
+            comboBox4.Text = _tmp["MedeniDurum"].ToString();
+            textBox8.Text = _tmp["Uyruk"].ToString();
+            comboBox6.Text = _tmp["EgitimDurum"].ToString();
+            textBox10.Text = _tmp["Meslek"].ToString();
+            textBox9.Text = _tmp["Dini"].ToString();
+            textBox11.Text = _tmp["SaglikDurum"].ToString();
+            comboBox5.Text = _tmp["KanGrubu"].ToString();
+            textBox12.Text = _tmp["Beden"].ToString();
+            textBox13.Text = _tmp["Ayakkabi"].ToString();
+            textBox14.Text = _tmp["KayitIli"].ToString();
+            textBox15.Text = _tmp["KayitYeri"].ToString();
+            dateTimePicker1.Text = _tmp["KayitTarih"].ToString();
+            textBox16.Text = _tmp["KayitTipi"].ToString(); 
+            textBox17.Text = _tmp["Mezhep"].ToString();
+            textBox18.Text = _tmp["EtnikKoken"].ToString();
+            string adresss = _tmp["acikAdres"].ToString();
+            //Match mq = Regex.Match(adresss, @"(SOKAK:)(.*)");
+            //Mahalle = m.Value;
+            //String adr = mq.Groups[2].ToString();
+            textBox4.Text = adresss;
+
+            if (_tmp["Enabled"].Equals(true) || _tmp["Enabled"].Equals(false))
+            //if (!(_tmp["FingerID"].ToString().Length).Equals(0))
+            {
+                checkBox1.Checked = (bool)_tmp["Enabled"];
+                cbFlag.SelectedIndex = (int)_tmp["Privilege"];
+                //cbFingerIndex.SelectedIndex = (int)_tmp["FingerID"] + 1;
+                //MessageBox.Show("FingerID = "+_tmp["FingerID"].ToString()+ "Parmakizi ="+ _tmp["FingerPrint1"].ToString());
+
+                for (int i = 0; i < 10; i++)
+                {
+                    int j = i + 1;
+                    comboBox2.Items.Add("P.No =" + j + " " + _tmp["FingerPrint" + i]);
+                }
+
+
+                if (_tmp["Image"] != System.DBNull.Value)
+                {
+                    pictureBox1.Load(_tmp["Image"].ToString());
+                }
+            }
+           
+
+            string Mahalle = comboBox1.Text;
+            string Cadde = txtCadde.Text;
+            string Sokak = txtSokak.Text;
+            string BinaAdi = txtBinaAdi.Text;
+            string BinaNo = txtKapiNo.Text;
+            string Ilce = txtIlce.Text;
+            string Il = txtIl.Text;
+            string TelNo = txtTelNo.Text;
+            
+            Program.data.SelectAdress(UserID, 1, out Mahalle, out Cadde, out Sokak, out BinaAdi, out BinaNo, out Ilce, out Il, out TelNo);
+            comboBox1.Text = Mahalle;
+            txtCadde.Text = Cadde;
+            txtSokak.Text = Sokak;
+            txtBinaAdi.Text = BinaAdi;
+            txtKapiNo.Text = BinaNo;
+            txtIlce.Text = Ilce;
+            txtIl.Text = Il;
+            txtTelNo.Text = TelNo;
+            
+            if (Mahalle.Equals("")) {
+                string adres = _tmp["acikAdres"].ToString();
+                Match m = Regex.Match(adres, @"(MAHALLE:)(.*)(CADDE)");
+                //Mahalle = m.Value;
+                Mahalle = m.Groups[2].ToString();
+                comboBox1.Text = Mahalle;
+            }
+            if (Cadde.Equals(""))
+            {
+                string adres = _tmp["acikAdres"].ToString();
+                Match m = Regex.Match(adres, @"(SOKAK:)(.*)(DI)");
+                //Mahalle = m.Value;
+                Cadde = m.Groups[2].ToString();
+                txtCadde.Text = Cadde;
+            }
+            if (BinaAdi.Equals(""))
+            {
+                string adres = _tmp["acikAdres"].ToString();
+                Match m = Regex.Match(adres, @"(DIŞKAPINO:)(.*)(İÇKAPINO:)");
+                //BinaAdi = m.Value;
+                BinaAdi = m.Groups[2].ToString();
+                txtBinaAdi.Text = BinaAdi;
+            }
+            if (BinaNo.Equals(""))
+            {
+                string adres = _tmp["acikAdres"].ToString();
+                Match m = Regex.Match(adres, @"(İÇKAPINO:)(.*)(İLÇE:)");
+                //Mahalle = m.Value;
+                BinaNo = m.Groups[2].ToString();
+                txtKapiNo.Text = BinaNo;
+            }
+            if (Ilce.Equals(""))
+            {
+                string adres = _tmp["acikAdres"].ToString();
+                Match m = Regex.Match(adres, @"(İLÇE:)(.*)(İL:)");
+                //Mahalle = m.Value;
+                Ilce = m.Groups[2].ToString();
+                txtIlce.Text = Ilce;
+            }
+            if (Il.Equals(""))
+            {
+                string adres = _tmp["acikAdres"].ToString();
+                Match m = Regex.Match(adres, @"(İL:)(.*)");
+                //Mahalle = m.Value;
+                Il = m.Groups[2].ToString();
+                txtIl.Text = Il;
+            }
+
+           
+        }
+
+        static byte[] GetBytes(string str)
+        {
+            byte[] bytes = new byte[str.Length * sizeof(char)];
+            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
+
+        static string GetString(byte[] bytes)
+        {
+            char[] chars = new char[bytes.Length / sizeof(char)];
+            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
+            return new string(chars);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if ((txtUserID.Text.Trim() != "") && (Convert.ToInt32(txtUserID.Text.Trim()) > 0))
+            {
+                if (cbFingerIndex.SelectedIndex > -1)
+                {
+                    if (!Devices.Connected)
+                    {
+                        Devices.Connect();
+                    }
+
+                    if (Devices.Connected)
+                    {
+                        int iUserID = Convert.ToInt32(txtUserID.Text.Trim());
+                        string sUserID = txtUserID.Text.Trim();
+                        int iFingerIndex = cbFingerIndex.SelectedIndex - 1;
+                        int iFlag = cbFingerIndex.SelectedIndex - 1;
+                        int idwErrorCode = 0;
+
+                        Devices.MC.CancelOperation();
+                        if (Devices.MC.StartEnrollEx(sUserID, iFingerIndex, iFlag))
+                        {
+                            MessageBox.Show("Yeni Kullanıcı Tanımlama,Kullanıcı ID=" + sUserID + " Parmak ID=" + iFingerIndex.ToString() + " Flag=" + iFlag.ToString(), "Başla");
+                            parmakIzi = true;
+                        }
+                        else
+                        {
+                            Devices.MC.GetLastError(ref idwErrorCode);
+                            MessageBox.Show("İşlem Sırasında Hata,Hata Kodu=" + idwErrorCode.ToString(), "Error");
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Parmak İzi Cihazına Bağlanamadı");
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Parmak ID Seçmeden Devam Edemezsiniz");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Kullanıcı ID Boş Geçilemez");
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+           // MessageBox.Show(cbFlag.Text);
+            int idwFingerIndex = cbFingerIndex.SelectedIndex - 1;
+            int iTmpLength = 0;
+            string sdwEnrollNumber = txtUserID.Text.Trim();
+
+            string byTmpData = "";
+            string sName = "";
+            string sPassword = "";
+            int iPrivilege = 0;
+            bool bEnabled = false;
+            DateTime now = DateTime.Now;
+            if (YeniKayitmi)
+            {
+                if (parmakIzi)
+                {
+                    //kullanıcı veri tabanına kaydet
+                    if (Program.data.InsertUser(Convert.ToInt32(txtUserID.Text), txtUserName.Text, pictureBox1.ImageLocation, "", cbFlag.SelectedIndex, checkBox1.Checked, textBox3.Text, textBox2.Text, textBox5.Text, now, Devices.MachineNumber, textBox1.Text, textBox7.Text, dateTimePicker2.Value, textBox6.Text, comboBox3.Text, comboBox4.Text, textBox8.Text, textBox17.Text, textBox18.Text, comboBox6.Text, textBox10.Text, textBox9.Text, textBox11.Text, comboBox5.Text, textBox12.Text, textBox13.Text, textBox14.Text, textBox15.Text, dateTimePicker1.Value, textBox16.Text) == 1)
+                    {
+                        //kullanıcının parmak izleri veri tabanına kaydet
+                        Devices.MC.EnableDevice(Devices.MachineNumber, false);
+                        //MessageBox.Show(Devices.MachineNumber.ToString());
+                        Cursor = Cursors.WaitCursor;
+                        Devices.MC.ReadAllTemplate(Devices.MachineNumber);
+                        if (Devices.MC.SSR_GetUserInfo(Devices.MachineNumber, sdwEnrollNumber, out sName, out sPassword, out iPrivilege, out bEnabled))
+                        {
+                            if (Devices.MC.SSR_GetUserTmpStr(Devices.MachineNumber, sdwEnrollNumber, idwFingerIndex, out byTmpData, out iTmpLength))
+                            {
+                                Program.data.InsertFinger(Convert.ToInt32(sdwEnrollNumber), idwFingerIndex, byTmpData);
+                                MessageBox.Show("Kayıt Başarı İle İşlendi");
+                                parmakIzi = true;
+                            }
+                            else
+                            {
+                                MessageBox.Show("Veri Tabanına Yazmada Hata");
+                            }
+                        }
+                        //adres bilgilerini veri tabanına yaz
+                        else
+                        {
+                            MessageBox.Show("Parmak Okutulmadı.");
+                        }
+                        if (Program.data.InsertAdress(Convert.ToInt32(txtUserID.Text.Trim()), 1, comboBox1.Text, txtCadde.Text, txtSokak.Text, txtBinaAdi.Text, txtKapiNo.Text, txtIlce.Text, txtIl.Text, txtTelNo.Text) == 1)
+                        {
+                            this.Close();
+                            this.Dispose();
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Parmak İzi Alınmadı.");
+                }
+            }
+            else
+            {
+                if (Program.data.UpdateUser(Convert.ToInt32(txtUserID.Text), txtUserName.Text, pictureBox1.ImageLocation, "", cbFlag.SelectedIndex, checkBox1.Checked, textBox3.Text, textBox2.Text, textBox5.Text, now, Devices.MachineNumber, textBox1.Text, textBox7.Text, dateTimePicker2.Value, textBox6.Text, comboBox3.Text, comboBox4.Text, textBox8.Text, textBox17.Text, textBox18.Text, comboBox6.Text, textBox10.Text, textBox9.Text, textBox11.Text, comboBox5.Text, textBox12.Text, textBox13.Text, textBox14.Text, textBox15.Text, dateTimePicker1.Value, textBox16.Text) == 1)
+                {
+                    //kullanıcının parmak izleri veri tabanına kaydet
+                    Devices.MC.EnableDevice(Devices.MachineNumber, false);
+                    //MessageBox.Show(Devices.MachineNumber.ToString());
+                    Cursor = Cursors.WaitCursor;
+                    Devices.MC.ReadAllTemplate(Devices.MachineNumber);
+                    if (Devices.MC.SSR_GetUserInfo(Devices.MachineNumber, sdwEnrollNumber, out sName, out sPassword, out iPrivilege, out bEnabled))
+                    {
+                        if (Devices.MC.SSR_GetUserTmpStr(Devices.MachineNumber, sdwEnrollNumber, idwFingerIndex, out byTmpData, out iTmpLength))
+                        {
+                            Program.data.UpdateFinger(Convert.ToInt32(sdwEnrollNumber), idwFingerIndex, byTmpData);
+                            MessageBox.Show("Kayıt Başarı İle İşlendi");
+                            parmakIzi = true;
+                        }
+                        else
+                        {
+                            MessageBox.Show("Veri Tabanına Yazmada Hata");
+                        }
+                    }
+                    //adres bilgilerini veri tabanına yaz
+                    else
+                    {
+                        MessageBox.Show("Parmak Okutulmadı.");
+                    }
+
+                    if (Program.data.UpdateAdress(Convert.ToInt32(txtUserID.Text.Trim()), 1, comboBox1.Text, txtCadde.Text, txtSokak.Text, txtBinaAdi.Text, txtKapiNo.Text, txtIlce.Text, txtIl.Text, txtTelNo.Text) == 1)
+                    {
+                        this.Close();
+                        this.Dispose();
+                    }
+                }
+               
+            }
+        }
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            kameraIsConnect = true;
+            webCamCapture1.Start(0);
+            pictureBox1.Size = webCamCapture1.Size;
+        }
+
+        private void webCamCapture1_ImageCaptured(object source, WebCam_Capture.WebcamEventArgs e)
+        {
+
+            pictureBox1.Image = e.WebCamImage;
+
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            if (kameraIsConnect == true)
+            {
+                webCamCapture1.Stop();
+                pictureBox1.Image.Save(@".\Capture\" + txtUserID.Text + ".jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+                pictureBox1.Load(@".\Capture\" + txtUserID.Text + ".jpg");
+            }
+            else
+            {
+                MessageBox.Show("Kamera Açık Değil.");
+               
+            }
+        }
+
+        private void frmUser_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button3_Click_1(object sender, EventArgs e)
+        {
+            if (Program.data.DeledeUser(Convert.ToInt32(txtUserID.Text.Trim())) == 1)
+            {
+                this.Close();
+            }
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+           // MessageBox.Show(comboBox1.Text);
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void cbFingerIndex_SelectedIndexChanged(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void textBox4_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+      
+
+        
+
+       
+
+    
+
+
+
+    }
+}

@@ -1,0 +1,338 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+
+namespace pdks
+{
+    public partial class frmReport : Form
+    {
+        public frmReport()
+        {
+            InitializeComponent();
+        }
+
+        private void frmReport_Load(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {   
+            DateTime ilk = dateTimePicker1.Value;
+            DateTime son = dateTimePicker2.Value;
+            if ((ilk.Month - son.Month).Equals(-1) || (ilk.Month - son.Month).Equals(0))
+            {
+                Raporla(ilk, son);
+            }
+            else 
+            {
+                MessageBox.Show("En fazla 60 günlük rapor alınır.");
+            }
+        }
+        private void GelmeyenRaporla(DateTime ilk, DateTime son)
+        {
+            FastReport.Report report = new FastReport.Report(); // 
+            report.Load(@".\Rapor\gelmeyen.frx");
+            DataSet ds = new DataSet();
+            string yas1 = numericUpDown1.Value.ToString();
+            string yas2 = numericUpDown2.Value.ToString();
+            if (ilk.Month.Equals(son.Month))
+            {
+                ds.Tables.Add(Program.data.GetUserCheckGelmeyenYas(ilk, son, son.Day, ilk.Day,yas1,yas2));
+            }
+            else
+            {
+                ds.Tables.Add(Program.data.GetUserCheckGelmeyenYas(ilk, son, 31, 1,yas1,yas2));
+            }
+            report.RegisterData(ds);
+            report.Show();
+        }
+        private void Raporla(DateTime ilk, DateTime son)
+        {
+            FastReport.Report report = new FastReport.Report(); // 
+            report.Load(@".\Rapor\2.frx");
+            DataSet ds = new DataSet();
+            string yas1 = numericUpDown1.Value.ToString();
+            string yas2 = numericUpDown2.Value.ToString();
+            if (ilk.Month.Equals(son.Month))
+            {
+                ds.Tables.Add(Program.data.GetUserCheckGelenYas(ilk, son, son.Day, ilk.Day,yas1,yas2));
+            }
+            else
+            {
+                ds.Tables.Add(Program.data.GetUserCheckGelenYas(ilk, son, 31, 1,yas1,yas2));
+            }
+            report.RegisterData(ds);
+            report.Show();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            DateTime ilk = dateTimePicker1.Value;
+            DateTime son = dateTimePicker2.Value;
+             if ((ilk.Month - son.Month).Equals(-1) || (ilk.Month - son.Month).Equals(0))
+             {
+                 GelmeyenRaporla(ilk, son);
+             }
+             else
+             {
+                 MessageBox.Show("En fazla 60 günlük rapor alınır.");
+             }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            DateTime ilk = dateTimePicker1.Value;
+            DateTime son = dateTimePicker2.Value;
+            String mahalle = textBox1.Text;
+            if ((ilk.Month - son.Month).Equals(-1) || (ilk.Month - son.Month).Equals(0))
+            {
+                FastReport.Report report = new FastReport.Report(); // 
+                report.Load(@".\Rapor\MahGelen.frx");
+                DataSet ds = new DataSet();
+                string yas1 = numericUpDown1.Value.ToString();
+                string yas2 = numericUpDown2.Value.ToString();
+                if (ilk.Month.Equals(son.Month))
+                {
+                    ds.Tables.Add(Program.data.GetUserCheckGelenMahalle(ilk, son, son.Day, ilk.Day, yas1, yas2,mahalle));
+                }
+                else
+                {
+                    ds.Tables.Add(Program.data.GetUserCheckGelenMahalle(ilk, son, 31, 1, yas1, yas2,mahalle));
+                }
+
+                report.RegisterData(ds);
+                report.Show();
+            }
+            else
+            {
+                MessageBox.Show("En fazla 60 günlük rapor alınır.");
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            DateTime ilk = dateTimePicker1.Value;
+            DateTime son = dateTimePicker2.Value;
+            String mahalle = textBox1.Text;
+            if ((ilk.Month - son.Month).Equals(-1) || (ilk.Month - son.Month).Equals(0))
+            {
+                FastReport.Report report = new FastReport.Report(); // 
+                report.Load(@".\Rapor\MahGelmeyen.frx");
+                DataSet ds = new DataSet();
+                string yas1 = numericUpDown1.Value.ToString();
+                string yas2 = numericUpDown2.Value.ToString();
+                if (ilk.Month.Equals(son.Month))
+                {
+                    ds.Tables.Add(Program.data.GetUserCheckGelmeyenMahalle(ilk, son, son.Day, ilk.Day, yas1, yas2,mahalle));
+                }
+                else
+                {
+                    ds.Tables.Add(Program.data.GetUserCheckGelmeyenMahalle(ilk, son, 31, 1, yas1, yas2,mahalle));
+                }
+                report.RegisterData(ds);
+                report.Show();
+            }
+            else
+            {
+                MessageBox.Show("En fazla 60 günlük rapor alınır.");
+            }
+
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            string yas1 = numericUpDown1.Value.ToString();
+            string yas2 = numericUpDown2.Value.ToString();
+            String mahalle = textBox1.Text;
+            DateTime ilk = dateTimePicker1.Value;
+            DateTime son = dateTimePicker2.Value;
+
+            if (yas1.Equals("0") && yas2.Equals("0"))
+            {
+                if (mahalle.Equals(""))
+                {
+                    if (checkBox1.Checked == true)
+                    {
+                        //gelmeyenler
+                        FastReport.Report report = new FastReport.Report(); // 
+                        report.Load(@".\Rapor\gelmeyen.frx");
+                        DataSet ds = new DataSet();
+                        if (ilk.Month.Equals(son.Month))
+                        {
+                            String sql ="select * from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + "," + son.Day + "," + son.Month + "," + ilk.Day + "," + son.Day + ") where Expr1='Gelmedi' order by UserId";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        else
+                        {
+                            String sql = "select * from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + ",31," + son.Month + ",1," + son.Day + ") where Expr1='Gelmedi' order by UserId";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        report.RegisterData(ds);
+                        report.Show();
+                    }
+                    else
+                    {
+                        //gelenler
+                        FastReport.Report report = new FastReport.Report();
+                        report.Load(@".\Rapor\2.frx");
+                        DataSet ds = new DataSet();
+                        if (ilk.Month.Equals(son.Month))
+                        {
+                            String sql = "select * from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + "," + son.Day + "," + son.Month + "," + ilk.Day + "," + son.Day + ") where Expr1!='Gelmedi' order by Expr1";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        else
+                        {
+                            String sql = "select * from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + ",31," + son.Month + ",1," + son.Day + ") where Expr1!='Gelmedi' order by Expr1";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        report.RegisterData(ds);
+                        report.Show();
+                    }
+                }
+                else 
+                {//mahalle secili
+                    if (checkBox1.Checked == true)
+                    {
+                        //gelmeyenler
+                        FastReport.Report report = new FastReport.Report(); // 
+                        report.Load(@".\Rapor\MahGelmeyen.frx");
+                        DataSet ds = new DataSet();
+                        if (ilk.Month.Equals(son.Month))
+                        {
+                            String sql = "select gl.UserId, KimlikNo,UserName,Soyadi,Expr1,tarih,yas,Mahalle from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + "," + son.Day + "," + son.Month + "," + ilk.Day + "," + son.Day + ") as gl, ADRESS as A where gl.UserId=A.UserId and Expr1='Gelmedi' and  Mahalle = '" + mahalle + "'";
+
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        else
+                        {
+                            String sql = "select gl.UserId, KimlikNo,UserName,Soyadi,Expr1,tarih,yas,Mahalle from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + ",31," + son.Month + ",1," + son.Day + ") as gl, ADRESS as A where gl.UserId=A.UserId and Expr1='Gelmedi' and  Mahalle = '" + mahalle + "'";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        report.RegisterData(ds);
+                        report.Show();
+                    }
+                    else
+                    {
+                        //gelenler
+                        FastReport.Report report = new FastReport.Report(); // 
+                        report.Load(@".\Rapor\MahGelen.frx");
+                        DataSet ds = new DataSet();
+                        if (ilk.Month.Equals(son.Month))
+                        {
+                            String sql = "select gl.UserId, KimlikNo,UserName,Soyadi,Expr1,tarih,yas,Mahalle from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + "," + son.Day + "," + son.Month + "," + ilk.Day + "," + son.Day + ") as gl, ADRESS as A where gl.UserId=A.UserId and Expr1!='Gelmedi' and  Mahalle = '" + mahalle + "' order by Expr1";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        else
+                        {
+                            String sql = "select gl.UserId, KimlikNo,UserName,Soyadi,Expr1,tarih,yas,Mahalle from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + ",31," + son.Month + ",1," + son.Day + ") as gl, ADRESS as A where gl.UserId=A.UserId and Expr1 !='Gelmedi' and  Mahalle = '" + mahalle + "' order by Expr1";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        report.RegisterData(ds);
+                        report.Show();
+                    }
+                }
+            }
+            else 
+            {   
+                //Yaş girilen
+                if (mahalle.Equals(""))
+                {
+                    if (checkBox1.Checked == true)
+                    {
+                        //gelmeyenler
+                        FastReport.Report report = new FastReport.Report(); // 
+                        report.Load(@".\Rapor\gelmeyen.frx");
+                        DataSet ds = new DataSet();
+                        if (ilk.Month.Equals(son.Month))
+                        {
+                            String sql ="select * from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + "," + son.Day + "," + son.Month + "," + ilk.Day + "," + son.Day + ") where Expr1='Gelmedi' and yas between '"+yas1+"' and '"+yas2+"' order by UserId";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        else
+                        {
+                            String sql = "select * from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + ",31," + son.Month + ",1," + son.Day + ") where Expr1='Gelmedi' and yas between '"+yas1+"' and '"+yas2+"' order by UserId";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        report.RegisterData(ds);
+                        report.Show();
+                    }
+                    else
+                    {
+                        //gelenler
+                        FastReport.Report report = new FastReport.Report();
+                        report.Load(@".\Rapor\2.frx");
+                        DataSet ds = new DataSet();
+                        if (ilk.Month.Equals(son.Month))
+                        {
+                            String sql = "select * from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + "," + son.Day + "," + son.Month + "," + ilk.Day + "," + son.Day + ") where Expr1!='Gelmedi' and yas between '"+yas1+"' and '"+yas2+"' order by Expr1";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        else
+                        {
+                            String sql = "select * from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + ",31," + son.Month + ",1," + son.Day + ") where Expr1!='Gelmedi' and yas between '"+yas1+"' and '"+yas2+"' order by Expr1";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        report.RegisterData(ds);
+                        report.Show();
+                    }
+                }
+                else 
+                {//mahalle secili
+                    if (checkBox1.Checked == true)
+                    {
+                        //gelmeyenler
+                        FastReport.Report report = new FastReport.Report(); // 
+                        report.Load(@".\Rapor\MahGelmeyen.frx");
+                        DataSet ds = new DataSet();
+                        if (ilk.Month.Equals(son.Month))
+                        {
+                            String sql = "select gl.UserId, KimlikNo,UserName,Soyadi,Expr1,tarih,yas,Mahalle from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + "," + son.Day + "," + son.Month + "," + ilk.Day + "," + son.Day + ") as gl, ADRESS as A where gl.UserId=A.UserId and Expr1='Gelmedi' and  Mahalle = '" + mahalle + "' and yas between '"+yas1+"' and '"+yas2+"'";
+
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        else
+                        {
+                            String sql = "select gl.UserId, KimlikNo,UserName,Soyadi,Expr1,tarih,yas,Mahalle from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + ",31," + son.Month + ",1," + son.Day + ") as gl, ADRESS as A where gl.UserId=A.UserId and Expr1='Gelmedi' and  Mahalle = '" + mahalle + "' and yas between '"+yas1+"' and '"+yas2+"'";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        report.RegisterData(ds);
+                        report.Show();
+                    }
+                    else
+                    {
+                        //gelenler
+                        FastReport.Report report = new FastReport.Report(); // 
+                        report.Load(@".\Rapor\MahGelen.frx");
+                        DataSet ds = new DataSet();
+                        if (ilk.Month.Equals(son.Month))
+                        {
+                            String sql = "select gl.UserId, KimlikNo,UserName,Soyadi,Expr1,tarih,yas,Mahalle from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + "," + son.Day + "," + son.Month + "," + ilk.Day + "," + son.Day + ") as gl, ADRESS as A where gl.UserId=A.UserId and Expr1!='Gelmedi' and  Mahalle = '" + mahalle + "' and yas between '"+yas1+"' and '"+yas2+"' order by Expr1";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        else
+                        {
+                            String sql = "select gl.UserId, KimlikNo,UserName,Soyadi,Expr1,tarih,yas,Mahalle from gelmeyenListesi(" + ilk.Year + "," + ilk.Month + "," + ilk.Day + ",31," + son.Month + ",1," + son.Day + ") as gl, ADRESS as A where gl.UserId=A.UserId and Expr1 !='Gelmedi' and  Mahalle = '" + mahalle + "' and yas between '"+yas1+"' and '"+yas2+"' order by Expr1";
+                            ds.Tables.Add(Program.data.Sorgu(sql));
+                        }
+                        report.RegisterData(ds);
+                        report.Show();
+                    }
+                }
+            }
+
+                
+             
+            
+            
+            
+        }
+
+      
+    }
+}

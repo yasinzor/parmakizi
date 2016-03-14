@@ -1,0 +1,492 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Data;
+using System.Data.OleDb;
+using System.IO;
+using System.Data.SqlClient;
+
+namespace pdks
+{
+    public class DataBase
+    {
+        public string ServerName = "";
+        public string UserName = "";
+        public string UserPass = "";
+        public string DatabaseName = "PDKS";
+
+        public  SqlConnection DbConnection;
+
+        public DataBase()
+        {
+
+            if (!File.Exists(@".\SetServer.txt"))
+            {
+                
+            }
+            else
+            {
+                StreamReader sr = new StreamReader(@".\SetServer.txt");
+                ServerName = sr.ReadLine();
+                UserName = sr.ReadLine();
+                UserPass = sr.ReadLine();
+                DatabaseName = "PDKS";
+                sr.Close();
+                Connect();
+            }
+          
+        }
+
+        public bool Connect()
+        {
+            if (DbConnection == null)
+                DbConnection = new SqlConnection();
+            if (DbConnection.State == ConnectionState.Closed)
+            {
+                SqlConnectionStringBuilder ConnectionString = new SqlConnectionStringBuilder();
+                ConnectionString.DataSource = ServerName;
+                ConnectionString.UserID = UserName;
+                ConnectionString.Password = UserPass;
+                ConnectionString.InitialCatalog = DatabaseName;
+                DbConnection.ConnectionString = ConnectionString.ConnectionString;
+                ConnectionString = null;
+                DbConnection.Open();
+            }
+            if (DbConnection.State == ConnectionState.Open)
+                return true;
+            return false;
+        }
+
+        public void WriteSetServer()
+        {
+            if (File.Exists(@".\SetServer.txt"))
+                File.Delete(@".\SetServer.txt");
+            File.AppendAllText(@".\SetServer.txt", ServerName + Environment.NewLine + UserName + Environment.NewLine + UserPass + Environment.NewLine);
+           
+        }
+
+        public DataTable Devices()
+        {
+            
+            DataTable _table = new DataTable();
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "select * from DEVICES";
+            SqlDataReader dr = cmd.ExecuteReader();
+            _table.Load(dr);
+            dr.Close();
+            cmd.Dispose();
+            return _table;
+        }
+
+        public int DeledeUser(int UserID)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "delete from USERS where UserId =@userid";
+            cmd.Parameters.Add("@userid",SqlDbType.Int).Value = UserID;
+            return cmd.ExecuteNonQuery();
+        }
+
+        public DataTable Users()
+        {
+            DataTable _table = new DataTable();
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "select U.UserID,U.KimlikNo,U.UserName,U.Soyadi,U.Password,U.Privilege,U.Enabled,F.FingerID from USERS U left outer join FINGERS F on U.UserId = F.UserID";
+            SqlDataReader dr = cmd.ExecuteReader();
+            _table.Load(dr);
+            dr.Close();
+            cmd.Dispose();
+            return _table;
+        }
+
+        public DataRow User(int UserID)
+        {
+            DataTable _table = new DataTable();
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            //cmd.CommandText = "select * from USERS where UserId = " + UserID.ToString();
+            cmd.CommandText = "select * from USERS U,FINGERS F,ADRESS A where U.UserId = F.UserID and U.UserId=A.UserId and F.UserID=" + UserID.ToString();
+            SqlDataReader dr = cmd.ExecuteReader();
+            _table.Load(dr);
+            dr.Close();
+            cmd.Dispose();
+
+            if (_table.Rows.Count.Equals(0))
+            {
+                DataRow _ravi = _table.NewRow();
+                _ravi["UserId"] = UserID.ToString();
+                _ravi["UserName"] = " ";
+                _ravi["KimlikNo"] = " ";
+                _ravi["Pasaport"] = " ";
+                _ravi["Soyadi"] = " ";
+                _ravi["Enabled"] = false;
+                _ravi["Privilege"] = false;
+                _table.Rows.Add(_ravi);
+                return _table.Rows[0];
+            }
+            else
+            {
+                return _table.Rows[0];
+
+            }
+        }
+
+        public void SelectAdress(int UserId, int AdresId, out string Mahalle, out string Cadde, out string Sokak, out string BinaAdi, out string BinaNo, out string Ilce, out string Il, out string TelNo)
+        {
+            Mahalle = "";
+            Cadde = "";
+            Sokak = "";
+            BinaAdi = "";
+            BinaNo = "";
+            Ilce = "";
+            Il = "";
+            TelNo = "";
+            
+
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            //cmd.CommandText = "select Mahalle,Cadde,Sokak,BinaAdi,BinaNo,Ilce,Il,Telno from ADRESS where UserId = @userid and AdresId =@adresid";
+            cmd.CommandText = "select Mahalle,Cadde,Sokak,BinaAdi,BinaNo,Ilce,Il,Telno from ADRESS where UserId =@userid and AdresId = @adresid";
+            cmd.Parameters.Add("@userid", SqlDbType.Int).Value = UserId;
+            cmd.Parameters.Add("@adresid", SqlDbType.Int).Value = AdresId;
+           
+            SqlDataReader dr = cmd.ExecuteReader();
+            if (dr.Read())
+            {
+                Mahalle = (string)dr[0];
+                Cadde = (string)dr[1];
+                Sokak = (string)dr[2];
+                BinaAdi = (string)dr[3];
+                BinaNo = (string)dr[4];
+                Ilce = (string)dr[5];
+                Il = (string)dr[6];
+                TelNo = (string)dr[7];
+                
+            }
+            dr.Close();
+        }
+        
+
+        public int InsertDevices(string DeviceName,string DeviceIP, string DevicePort)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "insert into DEVICES (DeviceName,DeviceIP,DevicePort) values (@devicename,@deviceip,@deviceport)";
+            cmd.Parameters.Add("@devicename", SqlDbType.VarChar).Value = DeviceName;
+            cmd.Parameters.Add("@deviceip", SqlDbType.VarChar).Value = DeviceIP;
+            cmd.Parameters.Add("@deviceport", SqlDbType.VarChar).Value = DevicePort;
+            return cmd.ExecuteNonQuery();
+        }
+
+        public int InsertUser(int UserId, string UserName, string Image, string Password, int Privilege, bool Enabled, string Pasaport, string Kimlik, string Soyadi, DateTime InsertDate,int DeviceId,string BabaAdi,string AnneAdi,DateTime DTarihi,string DYeri,
+            string Cinsiyet1,string Medeni,string Uyruk,string Mezhep,string Etnik,string Egitim,string Meslek,string Dini,string Saglik,string KanGrubu,string Beden,string Ayakkabi, string KayitIli,string KayitYeri,DateTime KayitTarih,string KayitTipi)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "insert into USERS (UserId, UserName,Image,Password,Privilege,Enabled,Pasaport,KimlikNo,Soyadi,InsertDate,DeviceId,BabaAdi,AnneAdi,Dogum,DYeri,Cinsiyet1,MedeniDurum,Uyruk,Mezhep,EtnikKoken,EgitimDurum,Meslek,Dini,SaglikDurum,KanGrubu,Beden,Ayakkabi,KayitIli,KayitYeri,KayitTarih,KayitTipi) values (@userid,@username,@image,@password,@privilege,@enabled,@pasaport,@kimlikNo,@soyadi,@insertdate,@deviceid,@babaAdi,@anneAdi,@dogum,@dYeri,@cinsiyet1,@medeniDurum,@uyruk,@mezhep,@etnikKoken,@egitimDurum,@meslek,@dini,@saglikDurum,@kanGrubu,@beden,@ayakkabi,@kayitIli,@kayitYeri,@kayitTarih,@kayitTipi)";
+            cmd.Parameters.Add("@userid", SqlDbType.Int).Value = UserId;
+            cmd.Parameters.Add("@username", SqlDbType.VarChar).Value = UserName;
+            cmd.Parameters.Add("@password", SqlDbType.VarChar).Value = Password;
+            cmd.Parameters.Add("@privilege", SqlDbType.Int).Value = Privilege;
+            cmd.Parameters.Add("@enabled", SqlDbType.Bit).Value = Enabled;
+            cmd.Parameters.Add("@image", SqlDbType.VarChar).Value = Image;
+            cmd.Parameters.Add("@pasaport",SqlDbType.VarChar).Value=Pasaport;
+            cmd.Parameters.Add("@kimlikNo",SqlDbType.VarChar).Value=Kimlik;
+            cmd.Parameters.Add("@soyadi", SqlDbType.VarChar).Value = Soyadi;
+            cmd.Parameters.Add("@insertdate",SqlDbType.DateTime).Value = InsertDate;
+            cmd.Parameters.Add("@deviceid",SqlDbType.Int).Value = DeviceId;
+            cmd.Parameters.Add("@babaAdi", SqlDbType.VarChar).Value = BabaAdi;
+            cmd.Parameters.Add("@anneAdi", SqlDbType.VarChar).Value = AnneAdi;
+            cmd.Parameters.Add("@dogum", SqlDbType.DateTime).Value = DTarihi;
+            cmd.Parameters.Add("@dYeri", SqlDbType.VarChar).Value = DYeri;
+            cmd.Parameters.Add("@cinsiyet1", SqlDbType.VarChar).Value = Cinsiyet1;
+            cmd.Parameters.Add("@medeniDurum", SqlDbType.VarChar).Value = Medeni;
+            cmd.Parameters.Add("@uyruk", SqlDbType.VarChar).Value = Uyruk;
+            cmd.Parameters.Add("@mezhep", SqlDbType.VarChar).Value = Mezhep;
+            cmd.Parameters.Add("@etnikKoken", SqlDbType.VarChar).Value = Etnik;
+            cmd.Parameters.Add("@egitimDurum", SqlDbType.VarChar).Value = Egitim;
+            cmd.Parameters.Add("@meslek", SqlDbType.VarChar).Value = Meslek;
+            cmd.Parameters.Add("@dini", SqlDbType.VarChar).Value = Dini;
+            cmd.Parameters.Add("@saglikDurum", SqlDbType.VarChar).Value = Saglik;
+            cmd.Parameters.Add("@kanGrubu", SqlDbType.VarChar).Value = KanGrubu;
+            cmd.Parameters.Add("@beden", SqlDbType.VarChar).Value = Beden;
+            cmd.Parameters.Add("@ayakkabi", SqlDbType.VarChar).Value = Ayakkabi;
+            cmd.Parameters.Add("@kayitIli", SqlDbType.VarChar).Value = KayitIli;
+            cmd.Parameters.Add("@kayitYeri", SqlDbType.VarChar).Value = KayitYeri;
+            cmd.Parameters.Add("@kayitTarih", SqlDbType.DateTime).Value = KayitTarih;
+            cmd.Parameters.Add("@kayitTipi",SqlDbType.VarChar).Value=KayitTipi;
+            return cmd.ExecuteNonQuery();
+        }
+
+        public int UpdateUser(int UserId, string UserName, string Image, string Password, int Privilege, bool Enabled,string Pasaport,string Kimlik,string Soyadi,DateTime LastUpDate,int DeviceId,string BabaAdi,string AnneAdi,DateTime Dogum,string DYeri,
+          string Cinsiyet1, string Medeni, string Uyruk, string Mezhep, string Etnik, string Egitim, string Meslek, string Dini, string Saglik, string KanGrubu, string Beden, string Ayakkabi, string KayitIli, string KayitYeri, DateTime KayitTarih, string KayitTipi)
+
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "update USERS set UserName=@username,Image=@image,Password=@password,Privilege=@privilege,Enabled=@enabled,Pasaport=@pasaport,KimlikNo=@kimlikNo,Soyadi=@soyadi,LastUpDate=@lastupdate,DeviceId=@deviceid,BabaAdi=@babaAdi,AnneAdi=@anneAdi,Dogum=@dogum,DYeri=@dYeri,Cinsiyet1=@cinsiyet1,MedeniDurum=@medeniDurum,Uyruk=@uyruk,Mezhep=@mezhep,EtnikKoken=@etnikKoken,EgitimDurum=@egitimDurum,Meslek=@meslek,Dini=@dini,SaglikDurum=@saglikDurum,KanGrubu=@kanGrubu,Beden=@beden,Ayakkabi=@ayakkabi,KayitIli=@kayitIli,KayitYeri=@kayitYeri,KayitTarih=@kayitTarih,KayitTipi=@kayitTipi where UserId = @userid";
+            cmd.Parameters.Add("@userid", SqlDbType.Int).Value = UserId;
+            cmd.Parameters.Add("@username", SqlDbType.VarChar).Value = UserName;
+            cmd.Parameters.Add("@password", SqlDbType.VarChar).Value = Password;
+            cmd.Parameters.Add("@privilege", SqlDbType.Int).Value = Privilege;
+            cmd.Parameters.Add("@enabled", SqlDbType.Bit).Value = Enabled;
+            cmd.Parameters.Add("@image", SqlDbType.VarChar).Value = Image;
+            cmd.Parameters.Add("@pasaport", SqlDbType.VarChar).Value = Pasaport;
+            cmd.Parameters.Add("@kimlikNo", SqlDbType.VarChar).Value = Kimlik;
+            cmd.Parameters.Add("@soyadi", SqlDbType.VarChar).Value = Soyadi;
+            cmd.Parameters.Add("@lastupdate", SqlDbType.DateTime).Value = LastUpDate;
+            cmd.Parameters.Add("@deviceid",SqlDbType.Int).Value = DeviceId;
+            cmd.Parameters.Add("@babaAdi", SqlDbType.VarChar).Value = BabaAdi;
+            cmd.Parameters.Add("@anneAdi", SqlDbType.VarChar).Value = AnneAdi;
+            cmd.Parameters.Add("@dogum", SqlDbType.DateTime).Value = Dogum;
+            cmd.Parameters.Add("@dYeri", SqlDbType.VarChar).Value = DYeri;
+            cmd.Parameters.Add("@cinsiyet1", SqlDbType.VarChar).Value = Cinsiyet1;
+            cmd.Parameters.Add("@medeniDurum", SqlDbType.VarChar).Value = Medeni;
+            cmd.Parameters.Add("@uyruk", SqlDbType.VarChar).Value = Uyruk;
+            cmd.Parameters.Add("@mezhep", SqlDbType.VarChar).Value = Mezhep;
+            cmd.Parameters.Add("@etnikKoken", SqlDbType.VarChar).Value = Etnik;
+            cmd.Parameters.Add("@egitimDurum", SqlDbType.VarChar).Value = Egitim;
+            cmd.Parameters.Add("@meslek", SqlDbType.VarChar).Value = Meslek;
+            cmd.Parameters.Add("@dini", SqlDbType.VarChar).Value = Dini;
+            cmd.Parameters.Add("@saglikDurum", SqlDbType.VarChar).Value = Saglik;
+            cmd.Parameters.Add("@kanGrubu", SqlDbType.VarChar).Value = KanGrubu;
+            cmd.Parameters.Add("@beden", SqlDbType.VarChar).Value = Beden;
+            cmd.Parameters.Add("@ayakkabi", SqlDbType.VarChar).Value = Ayakkabi;
+            cmd.Parameters.Add("@kayitIli", SqlDbType.VarChar).Value = KayitIli;
+            cmd.Parameters.Add("@kayitYeri", SqlDbType.VarChar).Value = KayitYeri;
+            cmd.Parameters.Add("@kayitTarih", SqlDbType.DateTime).Value = KayitTarih;
+            cmd.Parameters.Add("@kayitTipi", SqlDbType.VarChar).Value = KayitTipi;
+
+            return cmd.ExecuteNonQuery();
+        }
+
+        public int InsertFinger(int UserId, int FingerId, string FingerPrint)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "insert into FINGERS (UserID,FingerID,FingerPrint"+FingerId+") values (@userid,@fingerid,@fingerprint)";
+            cmd.Parameters.Add("@userid", SqlDbType.Int).Value = UserId;
+            cmd.Parameters.Add("@fingerid", SqlDbType.Int).Value = FingerId;
+            cmd.Parameters.Add("@fingerprint", SqlDbType.VarChar).Value = FingerPrint;
+            return cmd.ExecuteNonQuery();
+        }
+
+        public int UpdateFinger(int UserId, int FingerId, string FingerPrint)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "update FINGERS set FingerID=FingerID,FingerPrint" + FingerId + "=@FingerPrint where UserID=@UserID";
+            cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = UserId;
+            cmd.Parameters.Add("@FingerID", SqlDbType.Int).Value = FingerId;
+            cmd.Parameters.Add("@FingerPrint", SqlDbType.VarChar).Value = FingerPrint;
+            return cmd.ExecuteNonQuery();
+        }
+
+        public int InsertLog(int UserId, int VerifyMode, int InOutMode, int Year, int Month, int Day, int Hour, int Minute,int Second, int WorkCode)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "insert into ATTLOG (UserID,VerifyMode,InOutMode,Year,Month,Day,Hour,Minute,Second,WorkCode) values (@UserID,@VerifyMode,@InOutMode,@Year,@Month,@Day,@Hour,@Minute,@Second,@WorkCode)";
+            cmd.Parameters.Add("@UserID",SqlDbType.Int).Value =UserId;
+            cmd.Parameters.Add("@VerifyMode",SqlDbType.Int).Value =VerifyMode;
+            cmd.Parameters.Add("@InOutMode",SqlDbType.Int).Value =InOutMode;
+            cmd.Parameters.Add("@Year",SqlDbType.Int).Value =Year;
+            cmd.Parameters.Add("@Month",SqlDbType.Int).Value =Month;
+            cmd.Parameters.Add("@Day",SqlDbType.Int).Value =Day;
+            cmd.Parameters.Add("@Hour",SqlDbType.Int).Value =Hour;
+            cmd.Parameters.Add("@Minute",SqlDbType.Int).Value =Minute;
+            cmd.Parameters.Add("@Second",SqlDbType.Int).Value =Second;
+            cmd.Parameters.Add("@WorkCode", SqlDbType.Int).Value = WorkCode;
+            return cmd.ExecuteNonQuery();
+        }
+
+        public int InsertAdress(int UserId, int AdresId, string Mahalle, string Cadde, string Sokak, string BinaAdi, string BinaNo, string Ilce, string Il, string TelNo)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "insert into ADRESS (UserId,AdresId,Mahalle,Cadde,Sokak,BinaAdi,BinaNo,Ilce,Il,TelNo) values (@UserId,@AdresId,@Mahalle,@Cadde,@Sokak,@BinaAdi,@BinaNo,@Ilce,@Il,@TelNo)";
+            cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = UserId;
+            cmd.Parameters.Add("@AdresId", SqlDbType.Int).Value = AdresId;
+            cmd.Parameters.Add("@Mahalle", SqlDbType.VarChar).Value = Mahalle;
+            cmd.Parameters.Add("@Cadde", SqlDbType.VarChar).Value = Cadde;
+            cmd.Parameters.Add("@Sokak", SqlDbType.VarChar).Value = Sokak;
+            cmd.Parameters.Add("@BinaAdi", SqlDbType.VarChar).Value = BinaAdi;
+            cmd.Parameters.Add("@BinaNo", SqlDbType.VarChar).Value = BinaNo;
+            cmd.Parameters.Add("@Ilce", SqlDbType.VarChar).Value = Ilce;
+            cmd.Parameters.Add("@Il", SqlDbType.VarChar).Value = Il;
+            cmd.Parameters.Add("@TelNo", SqlDbType.VarChar).Value = TelNo;
+            return cmd.ExecuteNonQuery();
+        }
+
+        public int UpdateAdress(int UserId, int AdresId, string Mahalle, string Cadde, string Sokak, string BinaAdi, string BinaNo, string Ilce, string Il, string TelNo)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            //cmd.CommandText = "update ADRESS set Mahalle=@Mahalle,Cadde=@Cadde,Sokak=@Sokak,BinaAdi=@BinaAdi,BinaNo=@BinaNo,Ilce=@Ilce,Il=@Il,TelNo=@TelNo where UserId=@UserId and AdresId=@AdresId";
+            cmd.CommandText = "update ADRESS set AdresID=@AdresId,Mahalle=@Mahalle,Cadde=@Cadde,Sokak=@Sokak,BinaAdi=@BinaAdi,BinaNo=@BinaNo,Ilce=@Ilce,Il=@Il,TelNo=@TelNo where UserId=@UserId";
+
+            cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = UserId;
+            cmd.Parameters.Add("@AdresId", SqlDbType.Int).Value = AdresId;
+            cmd.Parameters.Add("@Mahalle", SqlDbType.VarChar).Value = Mahalle;
+            cmd.Parameters.Add("@Cadde", SqlDbType.VarChar).Value = Cadde;
+            cmd.Parameters.Add("@Sokak", SqlDbType.VarChar).Value = Sokak;
+            cmd.Parameters.Add("@BinaAdi", SqlDbType.VarChar).Value = BinaAdi;
+            cmd.Parameters.Add("@BinaNo", SqlDbType.VarChar).Value = BinaNo;
+            cmd.Parameters.Add("@Ilce", SqlDbType.VarChar).Value = Ilce;
+            cmd.Parameters.Add("@Il", SqlDbType.VarChar).Value = Il;
+            cmd.Parameters.Add("@TelNo", SqlDbType.VarChar).Value = TelNo;
+            return cmd.ExecuteNonQuery();
+        }
+
+        public string Finger(int UserID, int FingerID)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection =DbConnection;
+            cmd.CommandText = "select FingerPrint"+FingerID+" from FINGERS where UserID =@userid and FingerId =@fingerid";
+            cmd.Parameters.Add("@userid", SqlDbType.Int).Value = UserID;
+            cmd.Parameters.Add("@fingerid", SqlDbType.Int).Value = FingerID;
+            //SqlDataReader dr = cmd.ExecuteReader();
+            return Convert.ToString(cmd.ExecuteScalar());
+            
+        }
+
+        public DataTable GetDateList(DateTime ilktarih , DateTime sontarih)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+
+            cmd.CommandText = "SELECT distinct CONVERT(datetime, cast(Year as varchar)+'/'+cast(Month as varchar)+'/'+CAST(Day as varchar),101) as Tarih FROM ATTLOG where Year >=" + Convert.ToInt32(ilktarih.Year) + "and Year<=" + Convert.ToInt32(sontarih.Year) + " and Month = " + Convert.ToInt32(ilktarih.Month) + "and Month=" + Convert.ToInt32(sontarih.Month) + " and Day between " + Convert.ToInt32(ilktarih.Day) + " and " + Convert.ToInt32(sontarih.Day); 
+            SqlDataReader dr = cmd.ExecuteReader();
+            DataTable dt = new DataTable("Date_");
+            dt.Load(dr);
+            return dt;
+        }
+
+        public DataTable GetUserCheck(DateTime ilktarih, DateTime sontarih)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "SELECT  USERS.UserId, USERS.UserName, CONVERT(datetime, cast(Year as varchar)+'/'+cast(Month as varchar)+'/'+CAST(Day as varchar),101) as Tarih, CONVERT(time, cast([Hour] as varchar)+':'+cast(Minute as varchar)+':'+CAST(Second as varchar),108) as Saat,USERS.KimlikNo,USERS.Soyadi  FROM ATTLOG left join USERS on ATTLOG.UserId = USERS.UserId where Year=" + Convert.ToInt32(ilktarih.Year)+"and Year=" + Convert.ToInt32(sontarih.Year) + "and Month=" + Convert.ToInt32(ilktarih.Month) + "and Month=" + Convert.ToInt32(sontarih.Month) + " and Day between " + Convert.ToInt32(ilktarih.Day) + " and " + Convert.ToInt32(sontarih.Day);
+            SqlDataReader dr = cmd.ExecuteReader();
+            DataTable dt = new DataTable("AttLog");
+            dt.Load(dr);
+            return dt;
+        }
+
+        public DataTable GetUserCheckGelmeyen(DateTime ilktarih, DateTime sontarih,int a,int b)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            //cmd.CommandText = "SELECT USERS.UserId, USERS.UserName, CONVERT(datetime, cast(Year as varchar)+'/'+cast(Month as varchar)+'/'+CAST(Day as varchar),101) as Tarih, CONVERT(time, cast([Hour] as varchar)+':'+cast(Minute as varchar)+':'+CAST(Second as varchar),108) as Saat,USERS.KimlikNo,USERS.Soyadi  FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId  Where USERS.UserId NOT IN (SELECT  USERS.UserId FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId where Year=" + Convert.ToInt32(ilktarih.Year) + " and Year=" + Convert.ToInt32(sontarih.Year) + " and Month=" + Convert.ToInt32(ilktarih.Month) + " and Month=" + Convert.ToInt32(sontarih.Month) + " and Day between " + Convert.ToInt32(ilktarih.Day) + " and " + Convert.ToInt32(sontarih.Day) + ")";
+            cmd.CommandText = "select * from gelmeyenListesi("+ilktarih.Year+","+ilktarih.Month+","+ilktarih.Day+","+a+","+sontarih.Month+","+b+","+sontarih.Day+") where Expr1='Gelmedi'order by UserId";
+            SqlDataReader dr = cmd.ExecuteReader();
+            DataTable dt = new DataTable("View_2");
+            dt.Load(dr);
+            return dt;
+        }
+        public DataTable GetUserCheckGelen(DateTime ilktarih, DateTime sontarih, int a, int b)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            //cmd.CommandText = "SELECT USERS.UserId, USERS.UserName, CONVERT(datetime, cast(Year as varchar)+'/'+cast(Month as varchar)+'/'+CAST(Day as varchar),101) as Tarih, CONVERT(time, cast([Hour] as varchar)+':'+cast(Minute as varchar)+':'+CAST(Second as varchar),108) as Saat,USERS.KimlikNo,USERS.Soyadi  FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId  Where USERS.UserId NOT IN (SELECT  USERS.UserId FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId where Year=" + Convert.ToInt32(ilktarih.Year) + " and Year=" + Convert.ToInt32(sontarih.Year) + " and Month=" + Convert.ToInt32(ilktarih.Month) + " and Month=" + Convert.ToInt32(sontarih.Month) + " and Day between " + Convert.ToInt32(ilktarih.Day) + " and " + Convert.ToInt32(sontarih.Day) + ")";
+            cmd.CommandText = "select * from gelmeyenListesi(" + ilktarih.Year + "," + ilktarih.Month + "," + ilktarih.Day + "," + a + "," + sontarih.Month + "," + b + "," + sontarih.Day + ") where Expr1!='Gelmedi'order by Expr1";
+            SqlDataReader dr = cmd.ExecuteReader();
+            DataTable dt = new DataTable("View_2");
+            dt.Load(dr);
+            return dt;
+        }
+
+        public DataTable GetUserCheckGelmeyenYas(DateTime ilktarih, DateTime sontarih, int a, int b,string yas1,string yas2)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            //cmd.CommandText = "SELECT USERS.UserId, USERS.UserName, CONVERT(datetime, cast(Year as varchar)+'/'+cast(Month as varchar)+'/'+CAST(Day as varchar),101) as Tarih, CONVERT(time, cast([Hour] as varchar)+':'+cast(Minute as varchar)+':'+CAST(Second as varchar),108) as Saat,USERS.KimlikNo,USERS.Soyadi  FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId  Where USERS.UserId NOT IN (SELECT  USERS.UserId FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId where Year=" + Convert.ToInt32(ilktarih.Year) + " and Year=" + Convert.ToInt32(sontarih.Year) + " and Month=" + Convert.ToInt32(ilktarih.Month) + " and Month=" + Convert.ToInt32(sontarih.Month) + " and Day between " + Convert.ToInt32(ilktarih.Day) + " and " + Convert.ToInt32(sontarih.Day) + ")";
+            cmd.CommandText = "select * from gelmeyenListesi(" + ilktarih.Year + "," + ilktarih.Month + "," + ilktarih.Day + "," + a + "," + sontarih.Month + "," + b + "," + sontarih.Day + ") where Expr1='Gelmedi' and yas between " +yas1+" and "+ yas2+" order by UserId";
+            SqlDataReader dr = cmd.ExecuteReader();
+            DataTable dt = new DataTable("View_2");
+            dt.Load(dr);
+            return dt;
+        }
+        public DataTable GetUserCheckGelenYas(DateTime ilktarih, DateTime sontarih, int a, int b,string yas1, string yas2)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            //cmd.CommandText = "SELECT USERS.UserId, USERS.UserName, CONVERT(datetime, cast(Year as varchar)+'/'+cast(Month as varchar)+'/'+CAST(Day as varchar),101) as Tarih, CONVERT(time, cast([Hour] as varchar)+':'+cast(Minute as varchar)+':'+CAST(Second as varchar),108) as Saat,USERS.KimlikNo,USERS.Soyadi  FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId  Where USERS.UserId NOT IN (SELECT  USERS.UserId FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId where Year=" + Convert.ToInt32(ilktarih.Year) + " and Year=" + Convert.ToInt32(sontarih.Year) + " and Month=" + Convert.ToInt32(ilktarih.Month) + " and Month=" + Convert.ToInt32(sontarih.Month) + " and Day between " + Convert.ToInt32(ilktarih.Day) + " and " + Convert.ToInt32(sontarih.Day) + ")";
+            cmd.CommandText = "select * from gelmeyenListesi(" + ilktarih.Year + "," + ilktarih.Month + "," + ilktarih.Day + "," + a + "," + sontarih.Month + "," + b + "," + sontarih.Day + ") where Expr1!='Gelmedi' and yas between " + yas1 + " and " + yas2 + " order by Expr1";
+            SqlDataReader dr = cmd.ExecuteReader();
+            DataTable dt = new DataTable("View_2");
+            dt.Load(dr);
+            return dt;
+        }
+
+        public DataTable Sorgu(string sorgu)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = sorgu;
+            SqlDataReader dr = cmd.ExecuteReader();
+            DataTable dt = new DataTable("View_2");
+            dt.Load(dr);
+            return dt;
+
+        }
+        
+        public DataTable GetUserCheckGelmeyenMahalle(DateTime ilktarih, DateTime sontarih, int a, int b, string yas1, string yas2,string mahalle)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            //cmd.CommandText = "SELECT USERS.UserId, USERS.UserName, CONVERT(datetime, cast(Year as varchar)+'/'+cast(Month as varchar)+'/'+CAST(Day as varchar),101) as Tarih, CONVERT(time, cast([Hour] as varchar)+':'+cast(Minute as varchar)+':'+CAST(Second as varchar),108) as Saat,USERS.KimlikNo,USERS.Soyadi  FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId  Where USERS.UserId NOT IN (SELECT  USERS.UserId FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId where Year=" + Convert.ToInt32(ilktarih.Year) + " and Year=" + Convert.ToInt32(sontarih.Year) + " and Month=" + Convert.ToInt32(ilktarih.Month) + " and Month=" + Convert.ToInt32(sontarih.Month) + " and Day between " + Convert.ToInt32(ilktarih.Day) + " and " + Convert.ToInt32(sontarih.Day) + ")";
+            cmd.CommandText = "select gl.UserId, KimlikNo,UserName,Soyadi,Expr1,tarih,yas,Mahalle from gelmeyenListesi(" + ilktarih.Year + "," + ilktarih.Month + "," + ilktarih.Day + "," + a + "," + sontarih.Month + "," + b + "," + sontarih.Day + ") as gl, ADRESS as A where gl.UserId=A.UserId and Expr1='Gelmedi' and yas between " + yas1 + " and " + yas2 + " and Mahalle = '" + mahalle + "'";
+            SqlDataReader dr = cmd.ExecuteReader();
+            DataTable dt = new DataTable("View_2");
+            dt.Load(dr);
+            return dt;
+        }
+        public DataTable GetUserCheckGelenMahalle(DateTime ilktarih, DateTime sontarih, int a, int b, string yas1, string yas2, string mahalle)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            //cmd.CommandText = "SELECT USERS.UserId, USERS.UserName, CONVERT(datetime, cast(Year as varchar)+'/'+cast(Month as varchar)+'/'+CAST(Day as varchar),101) as Tarih, CONVERT(time, cast([Hour] as varchar)+':'+cast(Minute as varchar)+':'+CAST(Second as varchar),108) as Saat,USERS.KimlikNo,USERS.Soyadi  FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId  Where USERS.UserId NOT IN (SELECT  USERS.UserId FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId where Year=" + Convert.ToInt32(ilktarih.Year) + " and Year=" + Convert.ToInt32(sontarih.Year) + " and Month=" + Convert.ToInt32(ilktarih.Month) + " and Month=" + Convert.ToInt32(sontarih.Month) + " and Day between " + Convert.ToInt32(ilktarih.Day) + " and " + Convert.ToInt32(sontarih.Day) + ")";
+            cmd.CommandText = "select gl.UserId,KimlikNo,UserName,Soyadi,Expr1,tarih,yas,Mahalle from gelmeyenListesi(" + ilktarih.Year + "," + ilktarih.Month + "," + ilktarih.Day + "," + a + "," + sontarih.Month + "," + b + "," + sontarih.Day + ") as gl left join ADRESS as A on gl.UserId=A.UserId where Expr1!='Gelmedi' and yas between " + yas1 + " and " + yas2 + " and A.Mahalle = '" + mahalle + "' order by Expr1";
+            SqlDataReader dr = cmd.ExecuteReader();
+            DataTable dt = new DataTable("View_2");
+            dt.Load(dr);
+            return dt;
+        }
+
+        public DataTable GetUserCheckMahalle(string mahalle)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            //cmd.CommandText = "SELECT USERS.UserId, USERS.UserName, CONVERT(datetime, cast(Year as varchar)+'/'+cast(Month as varchar)+'/'+CAST(Day as varchar),101) as Tarih, CONVERT(time, cast([Hour] as varchar)+':'+cast(Minute as varchar)+':'+CAST(Second as varchar),108) as Saat,USERS.KimlikNo,USERS.Soyadi  FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId  Where USERS.UserId NOT IN (SELECT  USERS.UserId FROM USERS left join ATTLOG on ATTLOG.UserId = USERS.UserId where Year=" + Convert.ToInt32(ilktarih.Year) + " and Year=" + Convert.ToInt32(sontarih.Year) + " and Month=" + Convert.ToInt32(ilktarih.Month) + " and Month=" + Convert.ToInt32(sontarih.Month) + " and Day between " + Convert.ToInt32(ilktarih.Day) + " and " + Convert.ToInt32(sontarih.Day) + ")";
+            cmd.CommandText = "select distinct UserId,Mahalle from ADRESS where Mahalle = '" + mahalle + "' order by UserId";
+            SqlDataReader dr = cmd.ExecuteReader();
+            DataTable dt = new DataTable("Mahalle");
+            dt.Load(dr);
+            return dt;
+        }
+
+        public int InsertMahalle(string mahalleAdi)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "insert into MAHALLE (mahalleAdi) values (@mahalle_adi)";
+            cmd.Parameters.Add("@mahalle_adi", SqlDbType.VarChar).Value = mahalleAdi;
+            return cmd.ExecuteNonQuery();
+        }
+        public DataTable GetMahalle()
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = DbConnection;
+            cmd.CommandText = "select * from MAHALLE";
+            SqlDataReader dr = cmd.ExecuteReader();
+            DataTable dt = new DataTable("Mahalle");
+            dt.Load(dr);
+            return dt;
+        }
+
+    }
+    
+}
